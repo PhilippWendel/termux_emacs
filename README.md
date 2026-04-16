@@ -31,6 +31,8 @@ Download `termux.apk` and `emacs.apk` from the [latest release](https://github.c
 
 > **Note:** You must uninstall any existing Termux or Emacs installation first, as the APKs are signed with a different certificate than the originals.
 
+ **Note:** If termux fails to bootstrap, then uninstall both apps, install termux first and launch at it least once. Then install emacs.
+
 ### 2. Set up Termux
 
 Open Termux and run the bootstrap setup. Install any packages you need, for example:
