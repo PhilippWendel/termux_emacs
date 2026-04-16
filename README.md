@@ -4,8 +4,6 @@ A nix flake that patches and re-signs the [Termux](https://termux.dev) and [Emac
 
 Based on the guide by [marek-g](https://marek-g.github.io/posts/tips_and_tricks/emacs_on_android/).
 
-This allows the emacs app to call programs installed in termux.
-
 ## How it works
 
 Android assigns each app a unique user ID. By setting `android:sharedUserId="com.termux"` in both APKs and signing them with the same certificate, Android grants them access to each others files — so Emacs can read `/data/data/com.termux/` and call Termux binaries directly.
@@ -13,6 +11,17 @@ Android assigns each app a unique user ID. By setting `android:sharedUserId="com
 ## Downloads
 
 Pre-built APKs are available on the [Releases page](https://github.com/PhilippWendel/termux_emacs/releases).
+
+Every release is built by GitHub Actions from this repository and uploaded directly by the workflow — no local machine is involved. Each APK is signed with a [build provenance attestation](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds) that cryptographically ties it to the specific workflow run that produced it.
+
+To verify an APK after downloading (requires the [GitHub CLI](https://cli.github.com/)):
+
+```sh
+gh attestation verify termux.apk --repo PhilippWendel/termux_emacs
+gh attestation verify emacs.apk   --repo PhilippWendel/termux_emacs
+```
+
+A successful result confirms the file was built by this repository's CI and has not been tampered with. You can also inspect the linked Actions run directly on the [GitHub attestations page](https://github.com/PhilippWendel/termux_emacs/attestations).
 
 ## Setup
 

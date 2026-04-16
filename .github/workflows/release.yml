@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build-and-release:
@@ -23,6 +25,11 @@ jobs:
 
       - name: Build APKs
         run: nix build
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: result/*
 
       - name: Create GitHub Release (if tag exists)
         if: startsWith(github.ref, 'refs/tags/v')
