@@ -1,13 +1,13 @@
 {
   # Based on https://marek-g.github.io/posts/tips_and_tricks/emacs_on_android/
-  description = "A Nix flake to sign the nix-on-droid APK for Android Emacs";
+  description = "A Nix flake to patch and resign Termux and Emacs APKs with a shared user ID";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     # Use https links for the APKs and key as non-flake inputs
-    nix-on-droid-apk-input = {
-      url = "https://f-droid.org/repo/com.termux.nix_188037.apk";
+    termux-apk-input = {
+      url = "https://f-droid.org/repo/com.termux_1022.apk";
       flake = false;
     };
     emacs-apk-input = {
@@ -26,7 +26,7 @@
       self,
       nixpkgs,
       flake-utils,
-      nix-on-droid-apk-input,
+      termux-apk-input,
       emacs-apk-input,
       emacs-keystore,
     }:
@@ -40,12 +40,12 @@
           # Run with: nix build
           default =
             let
-              nix-on-droid-apk = "nix-on-droid.apk";
+              termux-apk = "termux.apk";
               emacs-apk = "emacs.apk";
               key = "emacs.keystore";
             in
             pkgs.stdenv.mkDerivation {
-              name = "nix-on-droid-emacs-signed";
+              name = "termux-emacs-signed";
               src = ./.; # Set the source to the current directory
               dontUnpack = true;
 
@@ -56,8 +56,8 @@
               ];
 
               buildPhase = ''
-                # Copy the keystore and APK to the source root
-                cp ${nix-on-droid-apk-input.outPath} ${nix-on-droid-apk}
+                # Copy the keystore and APKs to the build directory
+                cp ${termux-apk-input.outPath} ${termux-apk}
                 cp ${emacs-apk-input.outPath} ${emacs-apk}
                 cp ${emacs-keystore.outPath} ${key}
 
@@ -65,19 +65,19 @@
                 apktool d ${emacs-apk}
 
                 # Hardcoded shared_user_label
-                SHARED_USER_LABEL="Nix user"
+                SHARED_USER_LABEL="Termux user"
 
                 # Update Emacs' AndroidManifest.xml with the sharedUserId and sharedUserLabel
                 xsltproc --stringparam shared_user_label "$SHARED_USER_LABEL" --output emacs/AndroidManifest.xml $src/add_shared_user.xsl emacs/AndroidManifest.xml
 
-                # Copy the shared_user_label to Emacs' strings.xml
+                # Add the shared_user_label string to Emacs' strings.xml
                 xsltproc --stringparam shared_user_label "$SHARED_USER_LABEL" --output emacs/res/values/strings.xml $src/update_strings.xsl emacs/res/values/strings.xml
 
-                # Build emacs.apk
-                apktool b emacs -o  ${emacs-apk}
+                # Rebuild emacs.apk
+                apktool b emacs -o ${emacs-apk}
 
-                # Sign nix-on-droid
-                apksigner sign --ks ${key} --ks-pass pass:emacs1 ${nix-on-droid-apk}
+                # Sign termux.apk (already has android:sharedUserId="com.termux" in its manifest)
+                apksigner sign --ks ${key} --ks-pass pass:emacs1 ${termux-apk}
 
                 # Sign emacs.apk
                 apksigner sign --ks ${key} --ks-pass pass:emacs1 ${emacs-apk}
@@ -85,7 +85,7 @@
 
               installPhase = ''
                 mkdir -p $out
-                cp ${nix-on-droid-apk} $out/
+                cp ${termux-apk} $out/
                 cp ${emacs-apk} $out/
               '';
             };

@@ -16,7 +16,7 @@
     <xsl:template match="/manifest">
         <manifest>
             <xsl:apply-templates select="@*"/>
-            <xsl:attribute name="android:sharedUserId">com.termux.nix</xsl:attribute>
+            <xsl:attribute name="android:sharedUserId">com.termux</xsl:attribute>
             <xsl:attribute name="android:sharedUserLabel">@string/shared_user_label</xsl:attribute>
             <xsl:apply-templates select="node()"/>
         </manifest>
